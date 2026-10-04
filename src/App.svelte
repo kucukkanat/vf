@@ -2,7 +2,7 @@
   import { route, href } from './lib/router.svelte'
   import { session, logout } from './lib/auth/session.svelte'
   import { prefs, savePrefs, tooYoung } from './lib/prefs.svelte'
-  import { displayName } from './lib/models/profiles.svelte'
+  import { displayName, vfs } from './lib/models/profiles.svelte'
   import { isAdmin } from './lib/models/moderation.svelte'
   import { npub } from './lib/nostr/util'
   import { APP_NAME, MIN_JOIN_AGE } from './config'
@@ -48,6 +48,8 @@
     ['/online', 'Online'],
   ]
   let p = $derived(route.parts)
+  let freaks = $derived(Object.keys(vfs).length)
+  let gated = $derived(prefs.birthYear === null || tooYoung())
   let section = $derived('/' + (p[0] ?? ''))
 
   let birthInput = $state('')
@@ -63,20 +65,13 @@
 
 <div class="top">
   <div class="wrap">
-    <a class="logo" href={href('/')}>{APP_NAME}<small>the dark alternative community · on nostr</small></a>
+    <a class="logo" href={href('/')}>{APP_NAME}<span class="dot">.nostr</span><small>the dark alternative community</small></a>
     <div class="userbar">
+      <span class="count">{freaks}</span> freaks and counting<br />
       {#if session.pubkey}
-        Logged in as <a href={href('/u/' + npub(session.pubkey))}><b>{displayName(session.pubkey)}</b></a><br />
-        <a href={href('/u/' + npub(session.pubkey))}>My Profile</a>
-        <a href={href('/inbox')}>Messages</a>
-        <a href={href('/friends')}>Friends</a>
-        <a href={href('/upload')}>Upload</a>
-        <a href={href('/settings')}>Settings</a>
-        {#if isAdmin(session.pubkey)}<a href={href('/admin')}>Admin</a>{/if}
-        <button class="link" onclick={() => (logout(), (location.hash = '/'))}>Logout</button>
+        logged in as <a href={href('/u/' + npub(session.pubkey))}><b>{displayName(session.pubkey)}</b></a>
       {:else}
-        <a class="btn" href={href('/join')}>Join now — it's free</a>
-        <a class="btn alt" href={href('/login')}>Login</a>
+        <a href={href('/login')}>login</a> · <a href={href('/join')}><b>join free</b></a>
       {/if}
     </div>
   </div>
@@ -88,8 +83,66 @@
     {/each}
   </div>
 </div>
+{#if session.pubkey}
+  <div class="nav2">
+    <div class="wrap">
+      <a href={href('/u/' + npub(session.pubkey))}>My Profile</a>
+      <a href={href('/inbox')}>Messages</a>
+      <a href={href('/friends')}>Friends</a>
+      <a href={href('/upload')}>Upload Pic</a>
+      <a href={href('/journal/new')}>Write Journal</a>
+      <a href={href('/settings')}>Settings</a>
+      {#if isAdmin(session.pubkey)}<a href={href('/admin')}>Admin</a>{/if}
+      <button class="link" onclick={() => (logout(), (location.hash = '/'))}>Logout</button>
+    </div>
+  </div>
+{/if}
 
-<main class="wrap">
+<main class="wrap shell">
+  {#if !gated}
+    <aside class="side">
+      {#if session.pubkey}
+        <div class="leftnav">
+          <div class="lh">My Stuff</div>
+          <a href={href('/u/' + npub(session.pubkey))}>» My Profile</a>
+          <a href={href('/edit')}>» Edit Profile</a>
+          <a href={href('/edit/layout')}>» Edit Layout</a>
+          <a href={href('/friends')}>» Friends</a>
+          <a href={href('/inbox')}>» Messages</a>
+          <a href={href('/u/' + npub(session.pubkey) + '/pics')}>» My Pics</a>
+          <a href={href('/upload')}>» Upload Pic</a>
+          <a href={href('/u/' + npub(session.pubkey) + '/journal')}>» My Journal</a>
+          <a href={href('/journal/new')}>» Write Journal</a>
+          <a href={href('/settings')}>» Settings</a>
+        </div>
+      {:else}
+        <div class="leftnav">
+          <div class="lh">Join the darkness</div>
+          <div class="lb">
+            <p>Make friends, post pics, rate others, write journals and join cults with goths, industrial kids and freaks worldwide.</p>
+            <a class="btn assimilate" href={href('/join')}>ASSIMILATE</a>
+            <p style="margin-top:6px">Already a member? <a href={href('/login')}>Login</a></p>
+          </div>
+        </div>
+      {/if}
+      <div class="leftnav">
+        <div class="lh">Community</div>
+        <a href={href('/members')}>» Search Members</a>
+        <a href={href('/online')}>» Who's Online</a>
+        <a href={href('/pics/top')}>» Top Pics</a>
+        <a href={href('/pics')}>» New Pics</a>
+        <a href={href('/journals')}>» Journals</a>
+        <a href={href('/cults')}>» Cults</a>
+        <a href={href('/forums')}>» Forums</a>
+        <a href={href('/events')}>» Events</a>
+      </div>
+      <div class="leftnav">
+        <div class="lh">Site</div>
+        <a href={href('/about')}>» About & Rules</a>
+      </div>
+    </aside>
+  {/if}
+  <div class="page" class:full={gated}>
   {#if prefs.birthYear === null}
     <div class="age-gate box">
       <div class="box-h"><span>Welcome to the darkness</span></div>
@@ -148,15 +201,19 @@
   {:else if p[0] === 'admin'}<Admin />
   {:else if p[0] === 'about'}<About />
   {:else}<NotFound />{/if}
+  </div>
 </main>
 
 <footer>
+  <div class="links">
+    <a href={href('/about')}>About</a> | <a href={href('/members')}>Members</a> | <a href={href('/forums')}>Forums</a> | <a href={href('/cults')}>Cults</a> | <a href={href('/events')}>Events</a>
+  </div>
+  {APP_NAME} is a fan-made parody/tribute running on the open Nostr network. <b>Not affiliated with VampireFreaks.com.</b><br />
+  Content belongs to its authors and is stored on public relays.
   <div class="badges">
     <span class="badge88">nostr powered</span>
-    <span class="badge88 g">no ads · no servers</span>
+    <span class="badge88 g">no ads</span>
     <span class="badge88 p">best viewed at night</span>
     <span class="badge88 b">800x600+</span>
   </div>
-  {APP_NAME} is a fan-made parody/tribute running on the open Nostr network. <b>Not affiliated with VampireFreaks.com.</b><br />
-  <a href={href('/about')}>About & rules</a> · Content belongs to its authors and is stored on public relays.
 </footer>

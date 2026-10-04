@@ -125,7 +125,7 @@
           </div></div>
         {/if}
         <div class="box"><div class="box-h"><span>Topics</span>
-          {#if pending.length}<button class="link small" style="color:#fcc" onclick={() => (showPending = !showPending)}>{showPending ? 'hide' : 'show'} {pending.length} pending</button>{/if}</div>
+          {#if pending.length}<button class="link small" style="color:var(--purple)" onclick={() => (showPending = !showPending)}>{showPending ? 'hide' : 'show'} {pending.length} pending</button>{/if}</div>
           <div class="box-b">
             <table class="list">
               <thead><tr><th>Topic</th><th>Replies</th><th class="hide-m">Started</th></tr></thead>

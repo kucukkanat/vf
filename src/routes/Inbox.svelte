@@ -77,7 +77,7 @@
     <div class="box"><div class="box-h"><span>Conversations</span></div><div class="box-b">
       {#if loading}<Loading text="Decrypting" />{/if}
       {#each list as [pk, msgs] (pk)}
-        <a href={href('/inbox/' + npub(pk))} class="row" style="margin-bottom:6px;flex-wrap:nowrap;{pk === peerHex ? 'background:#2a0010' : ''}">
+        <a href={href('/inbox/' + npub(pk))} class="row" style="margin-bottom:6px;flex-wrap:nowrap;{pk === peerHex ? 'background:var(--purple-dk)' : ''}">
           <Avatar pubkey={pk} size={32} link={false} />
           <span style="overflow:hidden"><b>{displayName(pk)}</b><br /><span class="small dim">{timeAgo(msgs.at(-1)!.created_at)}</span></span>
         </a>
