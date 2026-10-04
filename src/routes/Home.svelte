@@ -13,7 +13,6 @@
   import { session } from '../lib/auth/session.svelte'
   import { href } from '../lib/router.svelte'
   import { naddr, npub, now, timeAgo } from '../lib/nostr/util'
-  import { APP_NAME } from '../config'
 
   let members = $state<string[]>([])
   let online = $state<string[]>([])
@@ -43,34 +42,9 @@
   let topPics = $derived(pics.filter((p) => ok(p.pubkey) && (scores[p.id]?.count ?? 0) >= 1).sort((a, b) => scores[b.id].avg - scores[a.id].avg).slice(0, 8))
   let newPics = $derived(pics.filter((p) => ok(p.pubkey)).slice(0, 8))
   let latestJournals = $derived(journals.filter((j) => ok(j.pubkey)).slice(0, 8))
-  let ticker = $derived(news[0] ? `★ ${news[0].title} ★` : `★ Welcome to ${APP_NAME} — the dark alternative community, now decentralized on Nostr ★ ${members.length} freaks and counting ★`)
 </script>
 
-<div class="ticker" style="margin:-10px -8px 10px"><span>{ticker}</span></div>
-
-<div class="cols3">
-  <div>
-    {#if !session.pubkey}
-      <div class="box"><div class="box-h"><span>Join the darkness</span></div><div class="box-b">
-        <p>Make friends, post pics, rate others, write journals and join cults with goths, industrial kids, emos and freaks worldwide.</p>
-        <a class="btn" href={href('/join')}>Create free account</a>
-        <p class="small dim">Already on Nostr? <a href={href('/login')}>Login</a></p>
-      </div></div>
-    {:else}
-      <div class="box"><div class="box-h"><span>My stuff</span></div><div class="box-b">
-        <p><a href={href('/u/' + npub(session.pubkey))}>» My profile</a><br /><a href={href('/edit')}>» Edit profile</a><br /><a href={href('/edit/layout')}>» Edit layout</a><br />
-          <a href={href('/friends')}>» Friends & requests</a><br /><a href={href('/inbox')}>» Messages</a><br /><a href={href('/upload')}>» Upload pic</a><br /><a href={href('/journal/new')}>» Write journal</a></p>
-      </div></div>
-    {/if}
-    <div class="box"><div class="box-h"><span>Online now ({onlineMembers.length})</span><a href={href('/online')}>all »</a></div><div class="box-b">
-      {#if !onlineMembers.length}<p class="dim small">Nobody… it's quiet in the crypt.</p>{/if}
-      {#each onlineMembers.slice(0, 15) as p}<div><span class="online-dot"></span> <Name pubkey={p} /></div>{/each}
-    </div></div>
-    <div class="box"><div class="box-h"><span>Cults</span><a href={href('/cults')}>all »</a></div><div class="box-b">
-      {#each cults as c}<div>» <a href={href('/cult/' + naddr(34550, c.owner, c.d))}>{c.name}</a></div>{:else}<p class="dim small">No cults yet. <a href={href('/cult/new')}>Start one</a>.</p>{/each}
-    </div></div>
-  </div>
-
+<div class="cols-r">
   <div>
     {#if news.length}
       <div class="box"><div class="box-h"><span>Site news</span></div><div class="box-b">
@@ -90,6 +64,13 @@
   </div>
 
   <div>
+    <div class="box"><div class="box-h"><span>Online now ({onlineMembers.length})</span><a href={href('/online')}>all »</a></div><div class="box-b">
+      {#if !onlineMembers.length}<p class="dim small">Nobody… it's quiet in the crypt.</p>{/if}
+      {#each onlineMembers.slice(0, 15) as p}<div><span class="online-dot"></span> <Name pubkey={p} /></div>{/each}
+    </div></div>
+    <div class="box"><div class="box-h"><span>Cults</span><a href={href('/cults')}>all »</a></div><div class="box-b">
+      {#each cults as c}<div>» <a href={href('/cult/' + naddr(34550, c.owner, c.d))}>{c.name}</a></div>{:else}<p class="dim small">No cults yet. <a href={href('/cult/new')}>Start one</a>.</p>{/each}
+    </div></div>
     <div class="box"><div class="box-h"><span>Latest journals</span><a href={href('/journals')}>all »</a></div><div class="box-b">
       {#each latestJournals as j (j.id)}
         <div style="margin-bottom:5px"><a href={href('/j/' + naddr(30023, j.pubkey, j.d))}>{j.title}</a><br /><span class="small dim">by {displayName(j.pubkey)} · {timeAgo(j.published)}</span></div>

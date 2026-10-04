@@ -56,7 +56,7 @@ Sources used instead:
 Remove the body radial gradient and all `text-shadow` glows.
 
 ### 2. Page shell (`App.svelte`)
-- `.wrap` → fixed **780px** centred (fluid below 720px for mobile, keep current breakpoint).
+- `.wrap` → **900px** centred (780px was too tight for left nav + content + rail) (fluid below 720px for mobile, keep current breakpoint).
 - Header row (`.maintop`): left-aligned wordmark ~45px tall (our own SVG/PNG in
   `public/`, white/gray with a pink accent — not a glowing red blackletter), right side
   "freak count" + logged-in user links in 10px gray.

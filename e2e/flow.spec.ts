@@ -43,7 +43,7 @@ async function join(ctx: BrowserContext, name: string, year = '1990') {
   await page.goto('./')
   await page.getByPlaceholder('e.g. 1991').fill(year)
   await page.getByRole('button', { name: 'Enter' }).click()
-  await page.getByRole('link', { name: /Join now/ }).click()
+  await page.getByRole('link', { name: 'ASSIMILATE' }).click()
   await page.getByRole('button', { name: 'Create my key' }).click()
   const words = (await page.locator('.words div').allInnerTexts()).map((t) => t.replace(/^\d+\.\s*/, '').trim())
   expect(words).toHaveLength(12)

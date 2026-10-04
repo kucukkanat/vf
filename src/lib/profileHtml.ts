@@ -12,20 +12,20 @@ const esc = (s: string | undefined | null) =>
 const nl2br = (s: string) => esc(s).replace(/\n/g, '<br>')
 
 export const BASE_PROFILE_CSS = `
-html,body{margin:0;background:transparent;color:#d8d8d8;font:11px/1.45 Verdana,Tahoma,sans-serif}
-a{color:#ff3355;text-decoration:none}a:hover{color:#ff4fc3;text-decoration:underline}
+html,body{margin:0;background:transparent;color:#cccccc;font:11px/1.4 Verdana,Tahoma,sans-serif}
+a{color:#bb55dd;text-decoration:none}a:hover{color:#ff63b4;text-decoration:underline}
 img{max-width:100%}
 #vf-profile{display:grid;grid-template-columns:260px 1fr;gap:10px}
 @media(max-width:600px){#vf-profile{grid-template-columns:1fr}}
-.vf-box{background:#0d0d0d;border:1px solid #3a0010;margin-bottom:10px}
-.vf-box>h3{margin:0;background:linear-gradient(#5a0014,#2a0008);color:#fff;font-size:11px;padding:3px 7px;text-transform:uppercase;letter-spacing:.5px}
+.vf-box{background:#151515;border:1px solid #2e2e2e;margin-bottom:10px}
+.vf-box>h3{margin:0;background:#1c1c1c;border-bottom:1px solid #343434;color:#fff;font-size:11px;padding:3px 6px}
 .vf-box>.vf-in{padding:8px}
-.vf-banner{width:100%;max-height:180px;object-fit:cover;display:block;border:1px solid #3a0010;margin-bottom:10px}
-.vf-avatar{width:100%;max-width:240px;aspect-ratio:1;object-fit:cover;border:1px solid #555;display:block;margin:0 auto 6px;background:#111}
-.vf-name{font:24px 'UnifrakturCook',Georgia,serif;color:#ff3355;margin:0}
-.vf-headline{color:#ff4fc3;font-style:italic;margin:2px 0 6px}
+.vf-banner{width:100%;max-height:180px;object-fit:cover;display:block;border:1px solid #2e2e2e;margin-bottom:10px}
+.vf-avatar{width:100%;max-width:240px;aspect-ratio:1;object-fit:cover;border:1px solid #444;display:block;margin:0 auto 6px;background:#111}
+.vf-name{font:bold 16px Verdana,Tahoma,sans-serif;color:#fff;margin:0}
+.vf-headline{color:#bb55dd;font-style:italic;margin:2px 0 6px}
 .vf-details td{padding:1px 4px;vertical-align:top}.vf-details td:first-child{color:#8a8a8a;font-weight:bold;white-space:nowrap}
-.vf-tag{display:inline-block;border:1px solid #600;background:#200;color:#f9a;padding:0 5px;margin:1px;font-size:9px;border-radius:6px}
+.vf-tag{display:inline-block;border:1px solid #5d4270;background:#2e1d3f;color:#e6c4f2;padding:0 4px;margin:1px;font-size:9px}
 .vf-top8{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center;font-size:10px}
 .vf-top8 img{width:100%;aspect-ratio:1;object-fit:cover;border:1px solid #444;display:block}
 .vf-top8 span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -49,7 +49,7 @@ export interface ProfileDoc {
 }
 
 const DEFAULT_AVATAR =
-  'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50"><rect width="50" height="50" fill="#1a0006"/><circle cx="25" cy="19" r="9" fill="#5a0014"/><path d="M8 50c2-12 9-17 17-17s15 5 17 17z" fill="#5a0014"/></svg>')
+  'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50"><rect width="50" height="50" fill="#1c1c1c"/><circle cx="25" cy="19" r="9" fill="#3a3a3a"/><path d="M8 50c2-12 9-17 17-17s15 5 17 17z" fill="#3a3a3a"/></svg>')
 
 export function buildProfileHtml(d: ProfileDoc, custom: { html: string; css: string } | null) {
   const name = d.meta?.display_name || d.meta?.name || npub(d.pubkey).slice(0, 16)
@@ -82,10 +82,10 @@ export function buildProfileHtml(d: ProfileDoc, custom: { html: string; css: str
     ${d.meta?.banner ? `<img class="vf-banner" src="${esc(d.meta.banner)}" alt="">` : ''}
     <div class="vf-box vf-about"><h3>About me</h3><div class="vf-in">${d.meta?.about ? nl2br(d.meta.about) : '<i>This freak hasn\'t written anything yet.</i>'}</div></div>
     ${custom?.html ? `<div class="vf-custom">${sanitizeLayoutHtml(custom.html)}</div>` : ''}
-    <div class="vf-box vf-friends"><h3>${esc(name)}'s Top 8 <span style="float:right;text-transform:none;font-weight:normal"><a target="_top" style="color:#fcc" href="${link(`/u/${n}/friends`)}">all ${d.friendCount} friends »</a></span></h3><div class="vf-in">
+    <div class="vf-box vf-friends"><h3>${esc(name)}'s Top 8 <span style="float:right;font-weight:normal"><a target="_top" style="color:#bb55dd" href="${link(`/u/${n}/friends`)}">all ${d.friendCount} friends »</a></span></h3><div class="vf-in">
       ${d.top8.length ? `<div class="vf-top8">${d.top8.map((f) => `<a class="vf-friend" target="_top" href="${link('/u/' + npub(f.pubkey))}"><img src="${esc(f.picture || DEFAULT_AVATAR)}" alt=""><span>${esc(f.name)}</span></a>`).join('')}</div>` : '<i>No Top 8 yet.</i>'}
     </div></div>
-    ${pics.length ? `<div class="vf-box vf-picbox"><h3>Pics <span style="float:right;text-transform:none;font-weight:normal"><a target="_top" style="color:#fcc" href="${link(`/u/${n}/pics`)}">view all »</a></span></h3><div class="vf-in"><div class="vf-pics">${pics.map((p) => `<a target="_top" href="${link('/pic/' + p.id)}"><img src="${esc(p.url)}" alt="${esc(p.title)}" loading="lazy"></a>`).join('')}</div></div></div>` : ''}
+    ${pics.length ? `<div class="vf-box vf-picbox"><h3>Pics <span style="float:right;font-weight:normal"><a target="_top" style="color:#bb55dd" href="${link(`/u/${n}/pics`)}">view all »</a></span></h3><div class="vf-in"><div class="vf-pics">${pics.map((p) => `<a target="_top" href="${link('/pic/' + p.id)}"><img src="${esc(p.url)}" alt="${esc(p.title)}" loading="lazy"></a>`).join('')}</div></div></div>` : ''}
   </div>
 </div>`
 
