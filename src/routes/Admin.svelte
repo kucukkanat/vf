@@ -1,6 +1,6 @@
 <script lang="ts">
   import Name from '../components/Name.svelte'
-  import { isAdmin, admins, mod, mute, loadAdminLists } from '../lib/models/moderation.svelte'
+  import { isAdmin, isSuperAdmin, superadmins, mod, mute, setAdmin, loadAdminLists } from '../lib/models/moderation.svelte'
   import { query } from '../lib/nostr/pool'
   import { session } from '../lib/auth/session.svelte'
   import { href } from '../lib/router.svelte'
@@ -10,6 +10,24 @@
   let reports = $state<Event[]>([])
   let target = $state('')
   let msg = $state('')
+  let newAdmin = $state('')
+  let adminMsg = $state('')
+  let busy = $state(false)
+
+  async function appoint(pk: string | null, on: boolean) {
+    if (!pk) return (adminMsg = 'Invalid npub')
+    busy = true
+    adminMsg = ''
+    try {
+      await setAdmin(session.pubkey!, pk, on)
+      adminMsg = on ? 'Admin added.' : 'Admin removed.'
+      newAdmin = ''
+    } catch (e: any) {
+      adminMsg = 'Error: ' + e.message
+    } finally {
+      busy = false
+    }
+  }
   loadAdminLists()
   query({ kinds: [1984], '#t': [APP_TAG], limit: 200 }).then((r) => (reports = r))
 
@@ -54,7 +72,21 @@
         <div class="row"><input id="b" class="grow" bind:value={target} placeholder="npub…" style="width:auto" /><button class="small" onclick={ban}>Block</button></div>
         {#if msg}<div class="ok">{msg}</div>{/if}
       </div></div>
-      <div class="box"><div class="box-h"><span>Admins</span></div><div class="box-b">{#each admins as a}<div><Name pubkey={a} /></div>{/each}</div></div>
+      <div class="box"><div class="box-h"><span>Admins</span></div><div class="box-b">
+        {#each mod.admins as a (a)}
+          <div class="row">
+            <Name pubkey={a} />
+            {#if superadmins.includes(a)}<span class="pill">super admin</span>
+            {:else if isSuperAdmin(session.pubkey) && mod.appointed.includes(a)}<button class="link small" disabled={busy} onclick={() => appoint(a, false)}>remove</button>
+            {:else if !mod.appointed.includes(a)}<span class="dim small">(set at build time)</span>{/if}
+          </div>
+        {/each}
+        {#if isSuperAdmin(session.pubkey)}
+          <label for="na">Appoint admin</label>
+          <div class="row"><input id="na" class="grow" bind:value={newAdmin} placeholder="npub…" style="width:auto" /><button class="small" disabled={busy} onclick={() => appoint(toHex(newAdmin), true)}>Add</button></div>
+        {/if}
+        {#if adminMsg}<div class={adminMsg.startsWith('Error') ? 'err' : 'ok'}>{adminMsg}</div>{/if}
+      </div></div>
       <div class="box"><div class="box-h"><span>Globally blocked ({Object.keys(mod.adminMuted).length})</span></div><div class="box-b small">
         {#each Object.keys(mod.adminMuted) as p}<div><Name pubkey={p} /></div>{/each}
       </div></div>

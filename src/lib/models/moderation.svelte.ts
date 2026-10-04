@@ -1,22 +1,55 @@
 // Mute lists (own + admins'), reports, featured pics and vote eligibility.
-import { ADMINS, D, VOTE_MIN_ACCOUNT_DAYS } from '../../config'
+import { ADMINS, D, SUPERADMINS, VOTE_MIN_ACCOUNT_DAYS } from '../../config'
 import { query } from '../nostr/pool'
 import { publish, updateList } from '../nostr/publish'
-import { now, tagValues, toHex, type Event } from '../nostr/util'
+import { now, tag, tagValues, toHex, uniq, type Event } from '../nostr/util'
 import { vfs } from './profiles.svelte'
 import { social } from './social.svelte'
 
-export const admins: string[] = ADMINS.map(toHex).filter((x): x is string => !!x)
-export const isAdmin = (pk: string | null | undefined) => !!pk && admins.includes(pk)
+const hexList = (l: string[]) => l.map(toHex).filter((x): x is string => !!x)
+export const superadmins: string[] = hexList(SUPERADMINS)
+const staticAdmins = uniq([...superadmins, ...hexList(ADMINS)])
 
 export const mod = $state({
+  /** Super admins + build-time admins + admins appointed by a super admin. */
+  admins: staticAdmins as string[],
+  appointed: [] as string[],
   adminMuted: {} as Record<string, true>,
   myMuted: {} as Record<string, true>,
   adminFollows: {} as Record<string, true>,
   featured: [] as string[],
 })
 
+export const isSuperAdmin = (pk: string | null | undefined) => !!pk && superadmins.includes(pk)
+export const isAdmin = (pk: string | null | undefined) => !!pk && mod.admins.includes(pk)
+
+/** Loads the admin roster appointed by super admins (newest list per super admin). */
+async function loadAppointed() {
+  if (!superadmins.length) return
+  const evs = await query({ kinds: [30000], authors: superadmins, '#d': [D.admins] })
+  const latest = new Map<string, Event>()
+  for (const e of evs) if (tag(e, 'd') === D.admins && (!latest.has(e.pubkey) || latest.get(e.pubkey)!.created_at < e.created_at)) latest.set(e.pubkey, e)
+  mod.appointed = uniq([...latest.values()].flatMap((e) => tagValues(e, 'p')).map(toHex).filter((x): x is string => !!x))
+  mod.admins = uniq([...staticAdmins, ...mod.appointed])
+}
+
+export async function setAdmin(me: string, target: string, on: boolean) {
+  if (!isSuperAdmin(me)) throw new Error('Only super admins can appoint admins')
+  await updateList(
+    30000,
+    me,
+    (tags) => {
+      const rest = tags.filter((t) => !(t[0] === 'p' && t[1] === target))
+      return on ? [...rest, ['p', target]] : rest
+    },
+    { d: D.admins, appTag: true },
+  )
+  await loadAppointed()
+}
+
 export async function loadAdminLists() {
+  await loadAppointed()
+  const admins = mod.admins
   if (!admins.length) return
   const evs = await query({ kinds: [10000, 3, 30006], authors: admins })
   const muted: Record<string, true> = {}

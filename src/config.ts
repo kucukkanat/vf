@@ -15,6 +15,7 @@ export const D = {
   top8: `${APP_TAG}:top8`,
   featured: `${APP_TAG}:featured`,
   presence: `${APP_TAG}:presence`,
+  admins: `${APP_TAG}:admins`,
 }
 
 /** Default public relays. Users' own NIP-65 relays are added on top of these. */
@@ -35,7 +36,16 @@ export const DEFAULT_BLOSSOM: string[] = envList('VITE_BLOSSOM') ?? [
 ]
 
 /**
- * Site admins (hex pubkeys or npubs). Admins publish site news (journals tagged
+ * Super admins (hex pubkeys or npubs). They have every admin power and can also
+ * appoint or remove admins from the Admin page; that list is a kind 30000 event
+ * they sign, so no rebuild is needed.
+ */
+export const SUPERADMINS: string[] = envList('VITE_SUPERADMINS') ?? [
+  'npub14q5vd7s7sk7t76jpc3pevh2xgm4de6t8t5h39mp2n74ha50yufqs7l0mv0',
+]
+
+/**
+ * Additional site admins fixed at build time (hex pubkeys or npubs). Admins publish site news (journals tagged
  * `vf-news`), featured pics (kind 30006) and the global mute list (kind 10000).
  */
 export const ADMINS: string[] = envList('VITE_ADMINS') ?? [

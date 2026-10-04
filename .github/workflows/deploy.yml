@@ -30,6 +30,7 @@ jobs:
         env:
           VF_BASE: /${{ github.event.repository.name }}/
           VITE_ADMINS: ${{ vars.VF_ADMINS }}
+          VITE_SUPERADMINS: ${{ vars.VF_SUPERADMINS }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

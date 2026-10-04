@@ -7,7 +7,7 @@
   import { loadPics, loadRatings, aggregate, type Pic, type Score } from '../lib/models/pics'
   import { loadJournals, type Journal } from '../lib/models/journals'
   import { whoIsOnline } from '../lib/models/presence'
-  import { isHidden, voteEligible, admins } from '../lib/models/moderation.svelte'
+  import { isHidden, voteEligible, mod } from '../lib/models/moderation.svelte'
   import { loadEvents, type CalEvent } from '../lib/models/events'
   import { listCults, type Cult } from '../lib/models/cults'
   import { session } from '../lib/auth/session.svelte'
@@ -31,7 +31,10 @@
     const owners = Object.fromEntries(p.map((x) => [x.id, x.pubkey]))
     scores = aggregate(await loadRatings(p.map((x) => x.id)), voteEligible, session.pubkey, owners)
   })
-  if (admins.length) loadJournals({ news: true, authors: admins, limit: 5 }).then((n) => (news = n))
+  $effect(() => {
+    const admins = mod.admins
+    if (admins.length) loadJournals({ news: true, authors: [...admins], limit: 5 }).then((n) => (news = n))
+  })
   loadJournals({ limit: 20 }).then((j) => (journals = j))
   loadEvents().then((e) => (events = e.filter((x) => x.end >= now() - 86400).slice(0, 5)))
   listCults().then((c) => (cults = c.slice(0, 8)))
