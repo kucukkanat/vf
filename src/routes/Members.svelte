@@ -6,6 +6,8 @@
   import { whoIsOnline } from '../lib/models/presence'
   import { search } from '../lib/nostr/pool'
   import { SCENES } from '../config'
+  import { matchesAny } from '../lib/search'
+  import { npub } from '../lib/nostr/util'
 
   let all = $state<string[]>([])
   let online = $state<string[]>([])
@@ -31,15 +33,19 @@
   }
 
   let results = $derived.by(() => {
-    const needle = q.trim().toLowerCase()
+    const needle = q.trim()
     let l = all.filter((p) => vfs[p] && !isHidden(p))
     if (needle) l = l.filter((p) => {
       const m = metas[p]
-      return [m?.name, m?.display_name, m?.about, vfs[p].headline, vfs[p].bands].some((s) => s?.toLowerCase().includes(needle)) || (remote ?? []).includes(p)
+      return (
+        matchesAny(needle, [m?.name, m?.display_name, m?.nip05, m?.about, vfs[p].headline, vfs[p].bands]) ||
+        (needle.startsWith('npub1') && npub(p).startsWith(needle.toLowerCase())) ||
+        (remote ?? []).includes(p)
+      )
     })
     if (scene) l = l.filter((p) => vfs[p].scenes.includes(scene))
-    if (loc.trim()) l = l.filter((p) => vfs[p].location.toLowerCase().includes(loc.trim().toLowerCase()))
-    if (gender.trim()) l = l.filter((p) => vfs[p].gender.toLowerCase().startsWith(gender.trim().toLowerCase()))
+    if (loc.trim()) l = l.filter((p) => matchesAny(loc, [vfs[p].location]))
+    if (gender.trim()) l = l.filter((p) => matchesAny(gender, [vfs[p].gender]))
     if (onlyOnline) l = l.filter((p) => online.includes(p))
     if (sort === 'name') l = [...l].sort((a, b) => (metas[a]?.name ?? '~').localeCompare(metas[b]?.name ?? '~'))
     else l = [...l].sort((a, b) => vfs[b].joined - vfs[a].joined)

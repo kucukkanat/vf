@@ -235,7 +235,7 @@ test('full member journey', async ({ browser }) => {
 })
 
 test('minor: NSFW hidden and strangers cannot DM', async ({ browser }) => {
-  const adult = await join(await browser.newContext(), 'Vlad')
+  const adult = await join(await browser.newContext(), 'Eşek Sıpası')
   await adult.page.goto('./#/upload')
   await adult.page.locator('input[type=file]').setInputFiles({ name: 'x.png', mimeType: 'image/png', buffer: png(32, 32, [10, 10, 10]) })
   await adult.page.getByLabel('Title').fill('spicy')
@@ -250,4 +250,9 @@ test('minor: NSFW hidden and strangers cannot DM', async ({ browser }) => {
   await expect(teen.page.locator('img.bigpic')).toHaveCount(0)
   await teen.page.goto(`./#/inbox/${adult.npub}`)
   await expect(teen.page.getByText('You can only message mutual friends')).toBeVisible()
+
+  // member search ignores accents, dotless i, case and spaces
+  await teen.page.goto('./#/members')
+  await teen.page.getByPlaceholder('Name, bands, headline…').fill('eseksipasi')
+  await expect(teen.page.locator('.ucard').getByText('Eşek Sıpası')).toBeVisible({ timeout: 15_000 })
 })

@@ -97,14 +97,17 @@ async function flush() {
   timer = null
   const authors = [...queue]
   queue.clear()
-  for (let i = 0; i < authors.length; i += 150) {
-    const chunk = authors.slice(i, i + 150)
+  for (let i = 0; i < authors.length; i += 100) {
+    const chunk = authors.slice(i, i + 100)
+    // Explicit limits: some relays apply a small default limit when none is given.
     const [k0, vf] = await Promise.all([
-      query({ kinds: [0], authors: chunk }),
-      query({ kinds: [30078], authors: chunk, '#d': [D.profile] }),
+      query({ kinds: [0], authors: chunk, limit: chunk.length * 2 }),
+      query({ kinds: [30078], authors: chunk, '#d': [D.profile], limit: chunk.length * 2 }),
     ])
     k0.forEach(apply)
     vf.forEach(apply)
+    // Let profiles that didn't arrive (timeouts, flaky relays) be requested again later.
+    for (const pk of chunk) if (!metas[pk]) requested.delete(pk)
   }
 }
 
